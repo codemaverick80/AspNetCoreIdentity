@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.EntityFrameworkCore;
 using AspNetCoreIdentity.Data;
+using AspNetCoreIdentity.Extensions;
 using AspNetCoreIdentity.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,10 +29,27 @@ namespace AspNetCoreIdentity
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+            #region "DataBase Setup"
+
+            /* Setup database */
+            //services.AddDbContext<ApplicationDbContext>(options =>
+            //    options.UseSqlServer(
+            //        Configuration.GetConnectionString("DefaultConnection")));
+
+            /* Getting Connection string from Windows 10 Environment Variable */
+            //services.AddDbContext<ApplicationDbContext>(options =>
+            //    options.UseSqlServer(Environment.GetEnvironmentVariable("ASPNETCORE_DB_CONNECTION")));
+
+
+            /* Getting Connection string from Windows 10 Environment Variable using Custom Extension method */
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
-           
+                options.UseSqlServer(Configuration.GetConnectionStringFromEnvironment()));
+
+            #endregion
+
+            #region "ASP.NET Core Identity Setup"
+            
             /* Default Identity */
             //services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
             //    .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -42,10 +60,21 @@ namespace AspNetCoreIdentity
                 .AddDefaultUI()
                 .AddDefaultTokenProviders();
            
+            #endregion
+            
+
+            /* JWT Token Support */
+
+
+
 
 
             services.AddControllersWithViews();
-            services.AddRazorPages();
+            services.AddRazorPages()
+                /* by adding following line Razor page will show changes when we refresh the page.
+                 * NuGet Package: 
+                 */
+                .AddRazorRuntimeCompilation();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -66,6 +95,7 @@ namespace AspNetCoreIdentity
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+            
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
